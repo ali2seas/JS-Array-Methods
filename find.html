@@ -1,0 +1,130 @@
+<script src="../simpletest.js"></script>
+<script>
+
+/*
+-- TODO :
+
+# [DONE] callback is invoked for every index of the array, not just those with assigned values.
+
+** the number of elements processed by find are set before the first invocation of callback **
+# [DONE] callback will not visit any elements added to the array after the call to find begins.
+# [DONE] If an existing, yet-unvisited element of the array is changed by callback, its value passed to the callback will be the value at the time find visits that element's index.
+# [DONE] Elements that are deleted are still visited.
+
+
+# [DONE] if this argument is provided, it will be used inside the callback.
+# [DONE] if this argument is not provided, it will be undefined.
+#
+# [DONE] excute the callback function for every position within the array until return true.
+# if no element return truthy value then return undefined.
+#
+#
+#
+#
+
+*/
+
+const find = (array, callback, ...args) => {
+
+  let numberOfElements = array.length;
+
+  if (args.length > 0) {
+    const optionalThisObject = args[0];
+    callback = callback.bind(optionalThisObject);
+  }
+
+  for (let i = 0; i < numberOfElements; i++) {
+    let result = callback(array[i], i,array)
+    if (result) {
+      return array[i];
+    }
+  }
+}
+
+
+tests({
+
+  'it should run the callback function array.length times': function() {
+    let counter = 0;
+    find([1,2,3,,,,7], function() {
+      counter++
+    })
+
+    eq(counter, 7);
+  },
+
+  'callback will not visit any elements added to the array after the call to find begins' : function() {
+
+    let counter = 0;
+    let myArray = [1,2,3,,,,7];
+
+    find(myArray, function(element) {
+      if (element === 1) {
+        myArray.push(8);
+      }
+      counter++
+    })
+
+    eq(counter, 7);
+    eq(myArray[7], 8);
+  },
+
+  'if the callback changed a value of any element, the value passed to the callback will be the value at the time find visits the element index' : function() {
+
+    let myArray = [1,2,3,,,,7];
+
+    find(myArray, function(element, index) {
+      if (index === 0) {
+        myArray[6] = 9
+      }
+      if (index === 6) {
+        eq(element, 9)
+      }
+    })
+  },
+
+
+  'it should visit element that are deleted from the array': function() {
+
+    let myArray = [1,2,3,,,,7];
+    find(myArray, function(element, index) {
+      if (index === 0) {
+        delete myArray[6]
+      }
+      if (index === 6) {
+        eq(element, undefined)
+      }
+    })
+  },
+
+  'it should pass in an optional this object': function() {
+
+    let myArray = [1,2,3,,,,7];
+    find(myArray , function(element, index) {
+      eq(this.optional , 'I am an optional this argument');
+    }, {'optional': 'I am an optional this argument'});
+
+  },
+
+
+  'excute the callback function for every position within the array until return true': function() {
+    myArray = [1,2,3,4,,,8];
+    let test1 = find(myArray, function(element, index) {
+      return element > 3;
+    })
+
+    eq(test1, 4)
+    eq(test1, 4)
+  },
+
+  'if no element return truthy value then return undefined.': function() {
+    myArray = [1,2,3,4,,,8];
+    let test2 = find(myArray, function(element, index) {
+      return element > 8;
+    })
+
+    eq(test2, undefined);
+  }
+
+});
+</script>
