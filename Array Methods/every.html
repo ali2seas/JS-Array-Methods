@@ -1,0 +1,166 @@
+<script src="../simpletest.js"></script>
+<script>
+
+/*
+-- TODO key: "value",
+
+# callback is invoked only for array indexes which have assigned values. It is not invoked for indexes which have been deleted, or which have never been assigned values.
+
+# callback is invoked with three arguments: the value of the element, the index of the element, and the Array object being traversed.
+
+# every does not mutate the array on which it is called.
+
+
+# The range of elements processed by every is set before the first invocation of callback.
+
+
+#  callback will not visit any elements added to the array after the call to every begins.
+
+#  If an existing, yet-unvisited element of the array is changed by callback, its value passed to the callback will be the value at the time every visits that element's index.
+
+#  Elements that are deleted are not visited.
+
+
+# if this argument is provided, it will be used inside the callback.
+
+# Calling this method on an empty array will return true for any condition!
+
+# returns true if the callback function returns a truthy value for every array element. Otherwise, false.
+
+*/
+
+const every = (...args) => {
+
+  const array = args[0];
+
+  if (Object.keys(array).length === 0){
+    return true;
+  }
+
+  let callback = args[1];
+  const numberOfElements = array.length;
+
+  if (args.length > 2) {
+    let optionalThisObject = args[2];
+    callback = args[1].bind(optionalThisObject);
+  }
+
+  for (let i = 0; i < numberOfElements; i++) {
+    if (i in array) {
+      let result = callback(array[i], i,array);
+      if (result === false) {
+        return false
+      }
+    }
+  }
+  return true;
+
+}
+
+
+tests({
+
+  'callback is invoked only for array indexes which have assigned values': function() {
+    let counter = 0;
+    every([1,2,3,,,,7], function(element) {
+      counter++;
+      element;
+    })
+    eq(counter, 4)
+  },
+
+  'callback is invoked with three arguments: the value of the element, position, original array': function() {
+
+    let myArray = [,,1,,];
+    every(myArray, function(element, position, originalArray) {
+      eq(element, 1)
+      eq(position, 2)
+      eq(originalArray, myArray)
+    })
+  },
+
+  'The range of elements processed by every is set before the first invocation of callback.' : function() {
+    fail();
+  },
+
+  'callback will not visit any elements added to the array after the call to every begins' : function() {
+
+    let counter = 0;
+    let myArray = [1,2,3,,,,7];
+
+    every(myArray, function(element) {
+      if (element === 1) {
+        myArray.push(8);
+      }
+      counter++
+    })
+
+    eq(counter, 4);
+    eq(myArray[7], 8);
+
+  },
+
+  'if the callback changed a value of any element, the value passed to the callback will be the value at the time every visits the element index' : function() {
+
+    let myArray = [1,2,3,,,,7];
+
+    every(myArray, function(element, index) {
+      if (index === 0) {
+        myArray[6] = 9;
+      }
+      if (index === 6) {
+        eq(element, 9)
+      }
+    })
+
+  },
+
+
+  'it should not visit element that are deleted from the array': function() {
+    let counter = 0;
+    let myArray = [1,2,3,,,,7];
+    every(myArray, function(element, index) {
+      if (index === 0) {
+        delete myArray[6]
+      }
+      counter++
+    })
+    eq(counter, 3)
+  },
+
+  'it should pass in an optional this object': function() {
+
+    let myArray = [1,2,3,,,,7];
+    every(myArray , function(element, index) {
+      eq(this.optional , 'I am an optional this argument');
+    }, {'optional': 'I am an optional this argument'});
+
+  },
+
+
+  'Calling this method on an empty array will return true for any condition!': function() {
+
+    let myArray = [];
+    let test1 = every(myArray , function(element, index) {
+      return element > 3
+    });
+
+    eq(test1, true)
+  },
+
+  'returns true if the callback function returns a truthy value for every array element. Otherwise, false.': function() {
+    let myArray = [11,23,44,55,,,,,7];
+    let test1 = every(myArray, function(element, index) {
+      return element > 3
+    })
+
+    let test2 = every(myArray, function(element, index) {
+      return element > 10
+    })
+
+    eq(test1, true)
+    eq(test2, false)
+  }
+
+});
+</script>
