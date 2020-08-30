@@ -1,0 +1,173 @@
+<script src="../simpletest.js"></script>
+<script>
+
+/*
+-- TODO key: "value",
+
+
+# reduceRight executes the callback function once for each element present in the array
+# reduceRight excludes holes in the array
+# reduceRight receives four arguments: the initial value (or value from the previous callback call), the value of the current element, the current index, and the array over which iteration is occurring.
+
+-- if Initial value
+# If initialValue is provided, then accumulator will be equal to initialValue.
+# If initialValue is provided, currentValue will be equal to the last value in the array.
+# If initialValue is provided, reduce() will start at index [array.length - 1] .
+----
+
+-- if No initial value
+
+# If no initialValue is provided, then accumulator will be equal to the last value in the array
+# If no initialValue is provided, currentValue will be equal to the second-to-last value.
+# If no initialValue is provided, reduce() will start at index [array.length - 2].
+---
+
+# If the array is empty and no initialValue was provided, TypeError would be thrown.
+# If the array has only one element and no initialValue was provided, then return the element.
+# if initialValue is provided but the array is empty, then return the IV.
+# it actually reduce
+
+*/
+
+const reduceRight = (...args) => {
+  const array = args[0];
+  let callback = args[1];
+  let lastAssignedIndex = Object.keys(array)[Object.keys(array).length - 1]
+  let accumulator = array[lastAssignedIndex];
+
+
+
+  if (args.length > 2) {
+    accumulator = args[2];
+
+    if (Object.keys(array).length === 0) {
+      return accumulator;
+    }
+
+  } else {
+
+    if (Object.keys(array).length === 1) {
+      return array[Object.keys(array)[0]];
+    }
+
+    if (Object.keys(array).length === 0) {
+    throw TypeError("Don't do it again")
+    }
+
+    lastAssignedIndex--
+  }
+
+  for (let i = lastAssignedIndex; i >= 0; i--) {
+    if (i in array) {
+      accumulator = callback(accumulator,array[i], i, array);
+    }
+  }
+
+  return accumulator;
+}
+
+tests({
+
+  'reduceRight executes the callback function once for each element present in the array': function() {
+    let myArray = [1,2,3];
+    let counter = 0;
+    reduceRight(myArray, function() {
+      counter++
+    },1)
+    eq(counter, 3)
+  },
+
+  'reduceRight excludes holes in the array': function() {
+    let myArray = [1,,,2,3,,,];
+    let counter = 0;
+    reduceRight(myArray, function() {
+      counter++
+    },1)
+    eq(counter, 3)
+
+  },
+
+  'reduceRight receives four arguments, [accumulator, currentValue, index, OriginalArray]': function() {
+    let myArray = [,,2,,];
+    reduceRight(myArray, function(accumulator, currentValue, index, OriginalArray) {
+      eq(currentValue, 2)
+      eq(index, 2)
+      eq(OriginalArray, myArray)
+    })
+
+  },
+
+  'if there is IV, then accumulator will be equal to initialValue': function() {
+    reduceRight([,,2,,], function(accumulator) {
+      eq(accumulator, 7)
+    }, 7)
+  },
+
+  'if there is IV, currentValue will be equal to the last value in the array': function() {
+    reduceRight([,,,3], function(accumulator, currentValue) {
+      eq(currentValue, 3)
+    }, 7)
+
+  },
+
+  'If initialValue is provided, reduce() will start at index [array.length - 1]': function() {
+    reduceRight([,,,8], function(accumulator, currentValue, index) {
+      eq(index, 3)
+    }, 7)
+  },
+
+  'if no IV, then accumulator will be equal to the last value in the array': function() {
+    reduceRight([,,2,,,], function(accumulator) {
+      eq(accumulator, 2)
+    })
+
+  },
+
+  'if no IV, currentValue will be equal to the second-to-last value.': function() {
+    reduceRight([,,,79,3], function(accumulator, currentValue) {
+      eq(currentValue, 79)
+    })
+
+  },
+
+  'If no initialValue is provided, reduce() will start at index [array.length - 2]': function() {
+    reduceRight([,,,,,33,8], function(accumulator, currentValue, index) {
+      eq(index, 5)
+    })
+  },
+
+  'If the array is empty and no initialValue was provided, throw TypeError': function() {
+    myArr = [];
+    try {
+      reduceRight(myArr, function() {})
+    } catch(e) {
+      eq(e instanceof TypeError, true)
+    }
+  },
+
+  'If the array has one element and no IV, then return the element.': function() {
+    let result = reduceRight([,,,,84,,], function() {})
+    eq(result,84)
+  },
+
+  'if initialValue is provided but the array is empty, then return the IV.': function() {
+    let result = reduceRight([,,,], function() {},5)
+    eq(result,5)
+
+  },
+
+  'it should actually reduce': function() {
+    let result1 = reduceRight([1,2,3,4,5], function(accumulator, currentValue, index) {
+      return accumulator + currentValue
+    },5)
+
+    let result2 = reduceRight([1,2,3,4,5], function(accumulator, currentValue, index) {
+      return accumulator + currentValue
+    })
+
+    eq(result2,15)
+  },
+
+
+});
+</script>
